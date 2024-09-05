@@ -67,7 +67,7 @@ class DockingVina:
             docking_file = f2.name
             
             # convert protein from PDB to PDBQT
-            run_line = 'obabel {} -xr -O receptor.pdbqt'.format(receptor, receptor)
+            run_line = 'obabel {} -xr -O receptor.pdbqt'.format(receptor)
             result = run(run_line.split(), capture_output=True, text=True, timeout=timeout_gen3d, env=os.environ)
             receptor = 'receptor.pdbqt'
             

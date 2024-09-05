@@ -61,12 +61,17 @@ class DockingVina:
     def docking(smile, *, vina_program, receptor, box_center,
                 box_size, error_val, seed, num_modes, exhaustiveness,
                 timeout_dock, timeout_gen3d, **kwargs):
+        
         with NamedTemporaryFile(mode=('r+t')) as f1, NamedTemporaryFile(mode=('r+t')) as f2:
             ligand = f1.name
             docking_file = f2.name
-            #run_line = 'obabel {} -xr -xn -xp -O {}qt'.format(receptor, receptor)
-            #result = run(run_line.split(), capture_output=True, text=True, timeout=timeout_gen3d, env=os.environ)
-            #receptor = receptor + 'qt'
+            
+            # convert protein from PDB to PDBQT
+            run_line = 'obabel {} -xr -O receptor.pdbqt'.format(receptor, receptor)
+            result = run(run_line.split(), capture_output=True, text=True, timeout=timeout_gen3d, env=os.environ)
+            receptor = 'receptor.pdbqt'
+            
+            # covert ligand from SMILES to PDBQT
             run_line = "obabel -:{} --gen3D -h -opdbqt -O {}".format(smile, ligand)
             result = run(run_line.split(), capture_output=True, text=True, timeout=timeout_gen3d, env=os.environ)
             try:
@@ -76,7 +81,8 @@ class DockingVina:
 
             if "Open Babel Error" in result.stdout or "3D coordinate generation failed" in result.stdout:
                 return error_val
-
+            
+            # run docking
             run_line = vina_program
             run_line += " --receptor {} --ligand {} --out {}".format(receptor, ligand, docking_file)
             run_line += " --center_x {} --center_y {} --center_z {}".format(*box_center)
